@@ -36,7 +36,7 @@ dbSearch = dbSearch || {};
             $(details).append(descr);
             $(li).append(details);
             let buttonLink = (linkUrl != "") ?
-              "<div><a href='" + linkUrl + "' class='view-open' target='_blank'><i class='icon-external'></i>Go to database</a></div>" :
+              "<div><a href='" + linkUrl + "' class='view-open'><i class='icon-external'></i>Go to database</a></div>" :
               "<div class='na'>Not available for access</div>"
             $(li).append(buttonLink);
             return li;
