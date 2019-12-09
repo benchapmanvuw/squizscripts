@@ -53,7 +53,7 @@ dbSearch = dbSearch || {};
             let title = result.details.resource_title;
             let description = result.details.resource_description;
             let extra = result.links;
-            let linkUrl = "https://library.victoria.ac.nz/casimir/public/resources/redirect/" + result.resource_id;
+            let linkUrl = "https://library.victoria.ac.nz/casimir/public/resources/redirect/" + result.details.resource_id;
 
             // Build HTML
             let li = $("<li class='result-item database'></li>");
