@@ -37,8 +37,9 @@ dbSearch = dbSearch || {};
               "<div class='detail description na'>No description available</div>";
               $(details).append(descr);
             let accnote = (extra != null) && (extranote == "accessnote") ?
-                {"<div class='detail access-note'><strong>Access note:</strong> " + extra + "</div>";
-                $(details).append(accnote);}
+                "<div class='detail access-note'><strong>Access note:</strong> " + extra + "</div>" :
+                null;
+            $(details).append(accnote);
             $(li).append(details);
             let buttonLink = (linkUrl != "") ?
               "<div><a href='" + linkUrl + "' class='view-open'><i class='icon-external'></i>Go to database</a></div>" :
