@@ -18,7 +18,7 @@ dbSearch = dbSearch || {};
         q: null,
 
         // Returns a list item <li> with the result details
-        renderResult: function(result) {
+        renderResultName: function(result) {
             // Get details
             let title = result.resource_title;
             let description = result.resource_description;
@@ -48,6 +48,36 @@ dbSearch = dbSearch || {};
             return li;
         },
 
+        renderResultSub: function(result) {
+            // Get details
+            let title = result.details.resource_title;
+            let description = result.details.resource_description;
+            let extra = result.links;
+            let linkUrl = "https://library.victoria.ac.nz/casimir/public/resources/redirect/" + result.resource_id;
+
+            // Build HTML
+            let li = $("<li class='result-item database'></li>");
+            let details = $("<div class='details'></div>");
+            let linkTitle = "<a href='" + linkUrl + "'><h3 class='result-title'>" + title + "</h3></a>";
+            $(details).append(linkTitle);
+            let descr = (description != null) ?
+              "<div class='detail description'><strong>Description:</strong> " + description + "</div>":
+              "<div class='detail description na'>No description available</div>";
+              $(details).append(descr);
+            extra.forEach(function(i) {
+              if (i.resourcelinktype_code == "accessnote") {
+                let accnote = "<div class='detail access-note'><strong>Access note:</strong> " + i.resourcelink_html + "</div>";
+                $(details).append(accnote);
+              };
+            });
+            $(li).append(details);
+            let buttonLink = (linkUrl != "") ?
+              "<div><a href='" + linkUrl + "' class='view-open'><i class='icon-external'></i>Go to database</a></div>" :
+              "<div class='na'>Not available for access</div>"
+            $(li).append(buttonLink);
+            return li;
+        },
+
         renderError: function() {
             $(this.results).empty().append("<p>Sorry, there were no matching items.</p>");
             let self = this;
@@ -59,13 +89,18 @@ dbSearch = dbSearch || {};
         renderResults: function(data) {
             if (data.search.results) {
               let results;
-              let extra;
               let q = this.q;
               if (q == "title") {
                 results = data.search.results;
-                extra = data.search.extra;
-                results = results.concat(extra);
-                console.log(results);
+                let extra = data.search.extra;
+                //Combine "extra" data with corresonding "results" data
+                results.forEach(function(i, index, array) {
+                  extra.forEach(function(j) {
+                    if (i.resource_id == j.resource_id) {
+                      array[index] = $.extend({}, i , j);
+                    }
+                  })
+                });
               } else {
                 //Extract and sort data array from data object
                 results = Object.keys(data.search.results).map(function(e) {
@@ -86,17 +121,15 @@ dbSearch = dbSearch || {};
                 let ul = $("<ul class='result-list'></ul>");
                 let self = this;
                 results.forEach(function(i) {
-                    (q == "title") ? result = self.renderResult(i) : result = self.renderResult(i.details);
+                    result = (q == "title") ? self.renderResultName(i) : self.renderResultSub(i);
                     $(ul).append(result);
                 });
                 $(this.results).append(ul);
               } else {
                 $(this.results).empty().append("<p>Sorry, there were no matching items.</p>");
-                console.log("Total = 0");
               }
             } else {
                 $(this.results).empty().append("<p>Sorry, there were no matching items.</p>");
-                console.log("No data");
             }
             let self = this;
             $(".searching").fadeOut(400, function() {
@@ -105,7 +138,6 @@ dbSearch = dbSearch || {};
         },
 
         purify: function(val) {
-            console.log(val);
             let regex = new RegExp(/(<.*>)(.*)(<.*\/.*>)/g);
             let test = regex.exec(val);
             if (test != null) {
@@ -181,22 +213,17 @@ dbSearch = dbSearch || {};
                     },
                     success: function(data) {
                         if (data) {
-                            console.log("success");
                             this.renderResults(data);
                         } else {
                             this.renderError();
-                            console.log("Not successful");
                         }
                     },
                     error: function(e) {
-                        console.log("Error returned");
                         this.renderError();
-                        console.log(e);
                     }
                 });
             } catch (err) {
                 this.renderError();
-                console.log("Error returned");
             }
         },
 
@@ -235,9 +262,7 @@ dbSearch = dbSearch || {};
                 let dbkword = decodeURIComponent(urlQuery["db-keyword"]);
                 dbkword = this.purify(dbkword);
                 if (dbkword.includes("+")) {
-                    console.log(dbkword);
                     dbkword = dbkword.replace(/\+/g, " ");
-                    console.log(dbkword);
                 }
                 searchKeyword.val(dbkword);
                 searchButton.trigger("click");
