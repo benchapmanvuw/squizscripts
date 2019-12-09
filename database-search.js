@@ -22,7 +22,9 @@ dbSearch = dbSearch || {};
             // Get details
             let title = result.resource_title;
             let description = result.resource_description;
-            let id= result.resource_id;
+            let extra = result.resourcelink_html;
+            let extranote = result.resourcelinktype_code;
+            let id = result.resource_id;
             let linkUrl = "https://library.victoria.ac.nz/casimir/public/resources/redirect/" + result.resource_id;
 
             // Build HTML
@@ -33,7 +35,10 @@ dbSearch = dbSearch || {};
             let descr = (description != null) ?
               "<div class='detail description'><strong>Description:</strong> " + description + "</div>":
               "<div class='detail description na'>No description available</div>";
-            $(details).append(descr);
+              $(details).append(descr);
+            let accnote = (extra != null) && (extranote == "accessnote") ?
+                {"<div class='detail access-note'><strong>Access note:</strong> " + extra + "</div>";
+                $(details).append(accnote);}
             $(li).append(details);
             let buttonLink = (linkUrl != "") ?
               "<div><a href='" + linkUrl + "' class='view-open'><i class='icon-external'></i>Go to database</a></div>" :
@@ -53,9 +58,13 @@ dbSearch = dbSearch || {};
         renderResults: function(data) {
             if (data.search.results) {
               let results;
+              let extra;
               let q = this.q;
               if (q == "title") {
-                results = data.search.results
+                results = data.search.results;
+                extra = data.search.extra;
+                results = results.concat(extra);
+                console.log(results);
               } else {
                 //Extract and sort data array from data object
                 results = Object.keys(data.search.results).map(function(e) {
