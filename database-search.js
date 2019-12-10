@@ -135,6 +135,9 @@ dbSearch = dbSearch || {};
             $(".searching").fadeOut(400, function() {
                 $(self.results).fadeIn();
             });
+            let top = $(".results").offsetTop;
+            window.scrollTo(0, top);
+}​
         },
 
         purify: function(val) {
