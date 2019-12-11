@@ -134,10 +134,10 @@ dbSearch = dbSearch || {};
             let self = this;
             $(".searching").fadeOut(400, function() {
                 $(self.results).fadeIn();
+                $('html, body').animate({
+                  scrollTop: $("#db-search-form").offset().top
+                }, 400);
             });
-            let top = $(".results").offsetTop;
-            window.scrollTo(0, top);
-}​
         },
 
         purify: function(val) {
