@@ -12,13 +12,10 @@ librarianSearch = librarianSearch || {};
         widget: null,
         form: null,
         results: null,
-        offset: 0,
-        limit: 10,
-
-        config: {
-            emailapi: null,
-            libapi: null
-        },
+        emailQuery: null,
+        libQuery: null,
+        emailapi: null,
+        libapi: null,
 
         // Returns a list item <li> with the result details
         renderResult: function(result) {
@@ -128,7 +125,7 @@ librarianSearch = librarianSearch || {};
                     jsonp: false,
                     context: this,
                     timeout: 5000,
-                    url: this.config.libapi,
+                    url: this.libapi,
                     data: data,
                     dataType: "json",
                     complete: function(data) {
@@ -156,7 +153,7 @@ librarianSearch = librarianSearch || {};
                     jsonp: false,
                     context: this,
                     timeout: 5000,
-                    url: this.config.emailapi,
+                    url: this.emailapi,
                     data: edata,
                     dataType: "json",
                     complete: function(data) {
@@ -183,31 +180,49 @@ librarianSearch = librarianSearch || {};
         },
 
         searchLibrarians: function() {
-            if ($(".results-container").hasClass("hidden")) {
-                $(".results-container").removeClass("hidden");
-            }
-            $(".searching").fadeIn();
-            $(this.results).fadeOut().empty();
-            query = this.libQuery;
-            let subQuery;
-            let librarian;
             let self = this;
-            subQuery = this.getEmail(query).done(function() {
-                librarian = self.getLibrarian(self.emailQuery);
+            $(".results-container").removeClass("hidden");
+            $(this.results).fadeOut().empty();
+            $(".searching").fadeIn(function() {
+              let query = self.libQuery;
+              let subQuery;
+              let librarian;
+              subQuery = self.getEmail(query).done(function() {
+                  librarian = self.getLibrarian(self.emailQuery);
+              });
             });
+        },
 
+        searchEmail: function() {
+            let self = this;
+            $(".results-container").removeClass("hidden");
+            $(this.results).fadeOut().empty();
+            $(".searching").fadeIn(function() {
+              let query = self.emailQuery;
+              let librarian;
+              librarian = self.getLibrarian(query);
+            });
         },
 
         setUp: function() {
             let div = $(".search-panel");
             let form = $("#librarian-search-form");
+            let searchName = $("#librarian-by-name");
             let searchSub = $("#librarian-by-subject");
-            let goButton = $("input[name='go-librarian']");
+            let goSub = $("input[name='go-librarian']");
+            let goName = $("input[name='go-name']");
             this.results = $(".results");
             this.form = form;
             this.widget = div;
 
-            goButton.on("click", { context: this }, function(e) {
+            goName.on("click", { context: this }, function(e) {
+                e.data.context.emailQuery = searchName.val();
+                console.log(e.data.context.emailQuery);
+                e.preventDefault();
+                e.data.context.searchEmail();
+            });
+
+            goSub.on("click", { context: this }, function(e) {
                 e.data.context.libQuery = searchSub.val();
                 console.log(e.data.context.libQuery);
                 e.preventDefault();
@@ -216,16 +231,14 @@ librarianSearch = librarianSearch || {};
 
             // Check for search query in URL
             let pageUrl = window.location.href;
-            console.log(pageUrl);
             let urlQuery = this.getAllUrlParams(pageUrl);
-            console.log(urlQuery);
             let sub = urlQuery["sub"];
             sub = decodeURIComponent(sub);
             if ("sub" in urlQuery) {
                 console.log(sub);
                 searchSub.val(sub);
                 console.log(searchSub.val())
-                goButton.trigger("click");
+                goSub.trigger("click");
                 console.log(searchSub.val());
             }
         },
@@ -236,10 +249,8 @@ librarianSearch = librarianSearch || {};
             this.results = null;
             this.emailQuery = null;
             this.libQuery = null;
-            this.config = {
-                emailapi: "%globals_asset_file_contents:1768409^json_decode^index:prod%/library/dev/search-librarians-by-subject",
-                libapi: "%globals_asset_file_contents:1768409^json_decode^index:prod%/library/dev/subject-librarian-contact-details-search"
-            };
+            this.emailapi = "%globals_asset_file_contents:1768409^json_decode^index:prod%/library/dev/search-librarians-by-subject";
+            this.libapi = "%globals_asset_file_contents:1768409^json_decode^index:prod%/library/dev/subject-librarian-contact-details-search";
 
             this.setUp();
         }
