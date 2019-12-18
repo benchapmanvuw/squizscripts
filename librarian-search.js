@@ -77,6 +77,9 @@ librarianSearch = librarianSearch || {};
             let self = this;
             $(".searching").fadeOut(400, function() {
                 $(self.results).fadeIn();
+                $('html, body').animate({
+                  scrollTop: $("#librarian-search-form").offset().top
+                }, 400);
             });
         },
 
