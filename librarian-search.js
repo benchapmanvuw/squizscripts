@@ -19,45 +19,60 @@ librarianSearch = librarianSearch || {};
 
         // Returns a list item <li> with the result details
         renderResult: function(result) {
-            // Get Details
-            let image = result.image;
-            let name = result.name;
-            let title = result.title;
-            let ophone = result.ophone;
-            let unit = result.unit;
-            let email = result.email;
+            if (result.status == "listed") {
 
+                // Get Details
+                let image = result.image;
+                let name = result.name;
+                let title = result.title;
+                let ophone = result.ophone;
+                let unit = result.unit;
+                let email = result.email;
 
-
-
-            // Build HTML
-            let article = "<article>";
-            article = article + "<img class='profile-picture' src='" + image + "' alt='" + name + " profile-picture photograph'>";
-            article = article + "<div class='summary'>";
-            article = article + "<header class='formatting'>";
-            article = article + "<h3>" + name + "</h3>";
-            article = article + "<p class='subtitle'><strong>" + title + "</strong>";
-            if (unit) {
-                article = article + "<span>" + unit + "</span></p>";
+                // Build HTML
+                let article = "<article>";
+                article += "<img class='profile-picture' src='" + image + "' alt='" + name + " profile-picture photograph'>";
+                article += "<div class='summary'>";
+                article += "<header class='formatting'>";
+                article += "<h3>" + name + "</h3>";
+                article += "<p class='subtitle'><strong>" + title + "</strong>";
+                article += (unit) ? "<span>" + unit + "</span></p>" : "</p>";
+                article += "</header>";
+                article += "<!-- Quick contact info -->";
+                article += "<ul class='meta'>";
+                article += "<li class='highlight'>";
+                article += "<a href=mailto:'" + email + "' title='Send an email to " + name + "'>";
+                article += "<i class='icon-mail'></i>" + email + "</a>";
+                article += "</li>";
+                article += "<li class='highlight'>";
+                article += "<a href='tel:" + ophone + "' title='Call " + name + " work phone'>";
+                article += "<i class='icon-phone'></span>" + ophone + "</a>";
+                article += "</li>";
+                article += "</ul>";
+                article += "</div>";
+                article += "</article>";
+                return article;
             } else {
-                article = article + "</p>";
+                let image = "./?a=1796112";
+                let name = this.libName;
+                let email = this.emailQuery;
+                let article = "<article>";
+                article += "<img class='profile-picture' src='" + image + "' alt='" + name + " profile-picture photograph'>";
+                article += "<div class='summary'>";
+                article += "<header class='formatting'>";
+                article += "<h3>" + name + "</h3>";
+                article += "</header>";
+                article += "<!-- Quick contact info -->";
+                article += "<ul class='meta'>";
+                article += "<li class='highlight'>";
+                article += "<a href=mailto:'" + email + "' title='Send an email to " + name + "'>";
+                article += "<i class='icon-mail'></i>" + email + "</a>";
+                article += "</li>";
+                article += "</ul>";
+                article += "</div>";
+                article += "</article>";
+                return article;
             }
-            article = article + "</header>";
-            article = article + "<!-- Quick contact info -->";
-            article = article + "<ul class='meta'>";
-            article = article + "<li class='highlight'>";
-            article = article + "<a href=mailto:'" + email + "' title='Send an email to " + name + "'>";
-            article = article + "<i class='icon-mail'></i>" + email + "</a>";
-            article = article + "</li>";
-            article = article + "<li class='highlight'>";
-            article = article + "<a href='tel:" + ophone + "' title='Call " + name + " work phone'>";
-            article = article + "<i class='icon-phone'></span>" + ophone + "</a>";
-            article = article + "</li>";
-            article = article + "</ul>";
-            article = article + "</div>";
-            article = article + "</article>";
-
-            return article;
         },
 
         renderError: function() {
@@ -66,15 +81,13 @@ librarianSearch = librarianSearch || {};
                 $(self.results).empty().append("<p>Sorry, there were no matching items.</p>");
                 $(self.results).fadeIn();
             });
-
         },
 
         retrieveResults: function(data) {
-
             let results = data;
             let result = this.renderResult(results);
-            $(this.results).append(result);
             let self = this;
+            $(this.results).append(result);
             $(".searching").fadeOut(400, function() {
                 $(self.results).fadeIn();
                 $('html, body').animate({
@@ -121,7 +134,6 @@ librarianSearch = librarianSearch || {};
 
         getLibrarian: function(email) {
             let data = "email=" + email;
-
             try {
                 $.ajax({
                     method: "GET",
@@ -163,10 +175,8 @@ librarianSearch = librarianSearch || {};
                         data = null;
                     },
                     success: function(data) {
-
-
+                        this.libName = data.name;
                         result = data.email;
-
                         deferred.resolve();
                     },
                     error: function(e) {
@@ -183,13 +193,12 @@ librarianSearch = librarianSearch || {};
         },
 
         searchLibrarians: function() {
+          let query, subQuery, librarian
             let self = this;
             $(".results-container").removeClass("hidden");
             $(this.results).fadeOut().empty();
             $(".searching").fadeIn(function() {
-              let query = self.libQuery;
-              let subQuery;
-              let librarian;
+              query = self.libQuery;
               subQuery = self.getEmail(query).done(function() {
                   librarian = self.getLibrarian(self.emailQuery);
               });
@@ -197,12 +206,12 @@ librarianSearch = librarianSearch || {};
         },
 
         searchEmail: function() {
+            let query, librarian;
             let self = this;
             $(".results-container").removeClass("hidden");
             $(this.results).fadeOut().empty();
             $(".searching").fadeIn(function() {
-              let query = self.emailQuery;
-              let librarian;
+              query = self.emailQuery;
               librarian = self.getLibrarian(query);
             });
         },
@@ -220,14 +229,14 @@ librarianSearch = librarianSearch || {};
 
             goName.on("click", { context: this }, function(e) {
                 e.data.context.emailQuery = searchName.val();
-                console.log(e.data.context.emailQuery);
+                let selectedLib = $("#librarian-by-name option:selected");
+                e.data.context.libName = $(selectedLib).html();
                 e.preventDefault();
                 e.data.context.searchEmail();
             });
 
             goSub.on("click", { context: this }, function(e) {
                 e.data.context.libQuery = searchSub.val();
-                console.log(e.data.context.libQuery);
                 e.preventDefault();
                 e.data.context.searchLibrarians();
             });
@@ -238,11 +247,8 @@ librarianSearch = librarianSearch || {};
             let sub = urlQuery["sub"];
             sub = decodeURIComponent(sub);
             if ("sub" in urlQuery) {
-                console.log(sub);
                 searchSub.val(sub);
-                console.log(searchSub.val())
                 goSub.trigger("click");
-                console.log(searchSub.val());
             }
         },
 
@@ -251,9 +257,10 @@ librarianSearch = librarianSearch || {};
             this.form = null;
             this.results = null;
             this.emailQuery = null;
+            this.libName = null;
             this.libQuery = null;
-            this.emailapi = "%globals_asset_file_contents:1768409^json_decode^index:prod%/library/dev/search-librarians-by-subject";
-            this.libapi = "%globals_asset_file_contents:1768409^json_decode^index:prod%/library/dev/subject-librarian-contact-details-search";
+            this.emailapi = "./?a=1789023"; // search librarians by subject"
+            this.libapi = "./?a=1788914"; // subject librarian contact details search
 
             this.setUp();
         }
