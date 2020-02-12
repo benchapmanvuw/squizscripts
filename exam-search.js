@@ -1,37 +1,36 @@
-
 let examSearch
 examSearch = examSearch || {};
 
 (function($) {
 
- examSearch.Search = function() {
-     "use strict";
-     this.init();
+    examSearch.Search = function() {
+        "use strict";
+        this.init();
  }
 
- examSearch.Search.prototype = {
-     widget: null,
-     form: null,
-     results: null,
-     offset: 0,
-     limit: 10,
+    examSearch.Search.prototype = {
+        widget: null,
+        form: null,
+        results: null,
+        offset: 0,
+        limit: 10,
 
-     config: {
-         api: "https://www.wgtn.ac.nz/library/dev/exam-search",
-         searchType: "any,contains",
-         offset: 0,
-         limit: 10
-     },
+        config: {
+            api: "https://www.wgtn.ac.nz/library/dev/exam-search",
+            searchType: "any,contains",
+            offset: 0,
+            limit: 10
+        },
 
-     arrayToUrl: function(params) {
-         urls = new Array();
-         for (property in params) {
-             param = params[property];
-             urls.push(property + "=" + param);
-         }
-         let url = urls.join("&");
-         return url;
-     },
+    arrayToUrl: function(params) {
+        urls = new Array();
+        for (property in params) {
+            param = params[property];
+            urls.push(property + "=" + param);
+        }
+        let url = urls.join("&");
+        return url;
+      },
 
      createLinkToPrimo: function() {
          let base = "https://tewaharoa.victoria.ac.nz/discovery/search?";
@@ -92,6 +91,9 @@ examSearch = examSearch || {};
              if (this.config.offset > 0) {
                  let prev = $("<a class='no-icon button previous' href='#'>Back</a>");
                  $(prev).on("click", { context: this }, function(e) {
+                     $('html, body').animate({
+                         scrollTop: $("#exam-search-form").offset().top
+                     }, 400);
                      e.preventDefault();
                      e.data.context.goBack();
                  });
@@ -102,6 +104,9 @@ examSearch = examSearch || {};
              if (lasthit < totalhits) {
                  let next = $("<a class='no-icon button next' href='#'>Next</a>");
                  $(next).on("click", { context: this }, function(e) {
+                     $('html, body').animate({
+                         scrollTop: $("#exam-search-form").offset().top
+                     }, 400);
                      e.preventDefault();
                      e.data.context.goNext();
                  });
@@ -162,9 +167,6 @@ examSearch = examSearch || {};
          let self = this;
          $(".searching").fadeOut(400, function() {
              $(self.results).fadeIn();
-             $('html, body').animate({
-               scrollTop: $("#exam-search-form").offset().top
-             }, 400);
          });
          $(".no-paper").removeClass("hidden");
      },
@@ -287,20 +289,23 @@ examSearch = examSearch || {};
          this.form = form;
          this.widget = div;
 
-         searchButton.on("click", { context: this }, function(e) {
-             e.data.context.searchQuery = searchKeyword.val();
-             e.data.context.config.offset = 0;
-             e.preventDefault();
-             e.data.context.searchExams();
-         });
+        searchButton.on("click", { context: this }, function(e) {
+            $('html, body').animate({
+                scrollTop: $("#exam-search-form").offset().top
+            }, 400);
+            e.data.context.searchQuery = searchKeyword.val();
+            e.data.context.config.offset = 0;
+            e.preventDefault();
+            e.data.context.searchExams();
+        });
 
-         let pageUrl = window.location.href;
-         let urlQuery = this.getAllUrlParams(pageUrl);
+        let pageUrl = window.location.href;
+        let urlQuery = this.getAllUrlParams(pageUrl);
 
-         if ("course" in urlQuery) {
-             searchKeyword.val(urlQuery["course"]);
-             searchButton.trigger("click");
-         }
+        if ("course" in urlQuery) {
+            searchKeyword.val(urlQuery["course"]);
+            searchButton.trigger("click");
+        }
      },
 
      init: function() {

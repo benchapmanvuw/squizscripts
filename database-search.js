@@ -134,9 +134,6 @@ dbSearch = dbSearch || {};
             let self = this;
             $(".searching").fadeOut(400, function() {
                 $(self.results).fadeIn();
-                $('html, body').animate({
-                  scrollTop: $("#db-search-form").offset().top
-                }, 400);
             });
         },
 
@@ -242,6 +239,9 @@ dbSearch = dbSearch || {};
             this.widget = div;
 
             searchButton.on("click", { context: this }, function(e) {
+                $('html, body').animate({
+                  scrollTop: $("#db-search-form").offset().top
+                }, 400);
                 e.data.context.searchQuery = searchKeyword.val();
                 e.data.context.searchType = "search";
                 e.data.context.q = "title";
@@ -250,6 +250,9 @@ dbSearch = dbSearch || {};
             });
 
             goButton.on("click", { context: this }, function(e) {
+                $('html, body').animate({
+                  scrollTop: $("#db-search-form").offset().top
+                }, 400);
                 e.data.context.searchQuery = searchSub.val();
                 e.data.context.searchType = "subject";
                 e.data.context.q = "subject";

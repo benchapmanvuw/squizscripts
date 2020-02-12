@@ -54,7 +54,7 @@ librarianSearch = librarianSearch || {};
                 article += "</div>";
                 return article;
             } else {
-                let image = "https://www.wgtn.ac.nz/__data/assets/image/0009/1796112/nopicture.png";
+                let image = "%globals_asset_url:1796112%";
                 let name = this.libName;
                 let email = this.nameQuery;
                 let article = "<article>";
@@ -255,8 +255,8 @@ librarianSearch = librarianSearch || {};
             this.nameQuery = null;
             this.libName = null;
             this.libQuery = null;
-            this.emailapi = "../dev/search-librarians-by-subject"; // search librarians by subject
-            this.libapi = "../dev/subject-librarian-by-name"; // subject librarian by name
+            this.emailapi = "%globals_asset_url:1789023%"; // search librarians by subject
+            this.libapi = "%globals_asset_url:1801898%"; // subject librarian by name
 
             this.setUp();
         }

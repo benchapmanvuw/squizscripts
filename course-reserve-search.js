@@ -189,9 +189,6 @@ reserveSearch = reserveSearch || {};
             let self = this;
             $(".searching").fadeOut(400, function() {
                 $(self.results).fadeIn();
-                $('html, body').animate({
-                  scrollTop: $("#course-reserve-search-form").offset().top
-                }, 400);
             });
         },
 
@@ -316,6 +313,9 @@ reserveSearch = reserveSearch || {};
             this.widget = div;
 
             $(searchButton).on("click", { context: this }, function(e) {
+                $('html, body').animate({
+                    scrollTop: $("#course-reserve-search-form").offset().top
+                }, 400);
                 e.data.context.searchQuery = course.val();
                 e.data.context.config.offset = 0;
                 e.preventDefault();
