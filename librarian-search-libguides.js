@@ -89,9 +89,6 @@ librarianSearch = librarianSearch || {};
             $(this.resultsDiv).append(result);
             $(".searching").fadeOut(400, function() {
                 $(this.resultsDiv).fadeIn();
-                $("html, body").animate({
-                  scrollTop: $("#librarian-search-form").offset().top
-                }, 400);
             }.bind(this));
         },
 
@@ -224,6 +221,9 @@ librarianSearch = librarianSearch || {};
             this.widget = widget;
 
             goName.on("click", function(e) {
+                $("html, body").animate({
+                  scrollTop: $("#librarian-search-form").offset().top
+                }, 400);
                 e.preventDefault();
                 this.nameQuery = searchName.val();
                 let selectedLib = $("#librarian-by-name option:selected");
@@ -232,6 +232,9 @@ librarianSearch = librarianSearch || {};
             }.bind(this));
 
             goSub.on("click", function(e) {
+                $("html, body").animate({
+                  scrollTop: $("#librarian-search-form").offset().top
+                }, 400);
                 e.preventDefault();
                 this.libQuery = searchSub.val();
                 this.searchLibrarians();
