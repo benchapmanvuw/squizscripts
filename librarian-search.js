@@ -9,53 +9,54 @@ librarianSearch = librarianSearch || {};
     };
 
     librarianSearch.Search.prototype = {
-        widget: null,
-        form: null,
-        results: null,
-        emailQuery: null,
-        libQuery: null,
-        emailapi: null,
-        libapi: null,
+        widget: null, form: null, results: null, nameQuery: null, libQuery: null, emailapi: null, libapi: null,
 
         // Returns a list item <li> with the result details
         renderResult: function(result) {
-            if (result.status == "listed") {
+            if (result[0]) {
 
                 // Get Details
-                let image = result.image;
-                let name = result.name;
-                let title = result.title;
-                let ophone = result.ophone;
-                let unit = result.unit;
-                let email = result.email;
+                let photo = result[0].photo,
+                    firstName = result[0].first_name,
+                    lastName = result[0].last_name,
+                    title = result[0].title,
+                    email = result[0].email,
+                    ophone = result[0].Office_Phone,
+                    subjects = result[0].subject_area,
+                    guides = result[0].subjects,
+                    name = firstName + " " + lastName;
 
                 // Build HTML
-                let article = "<article>";
-                article += "<img class='profile-picture' src='" + image + "' alt='" + name + " profile-picture photograph'>";
+                let article = "<div class='librarian-profile'>";
+                article += "<img class='profile-picture' src='" + photo + "' alt='" + name + " profile-picture photograph'>";
                 article += "<div class='summary'>";
                 article += "<header class='formatting'>";
                 article += "<h3>" + name + "</h3>";
-                article += "<p class='subtitle'><strong>" + title + "</strong>";
-                article += (unit) ? "<span>" + unit + "</span></p>" : "</p>";
+                if (title) article += "<p class='subtitle'><strong>" + title + "</strong>";
                 article += "</header>";
                 article += "<!-- Quick contact info -->";
                 article += "<ul class='meta'>";
                 article += "<li class='highlight'>";
                 article += "<a href=mailto:'" + email + "' title='Send an email to " + name + "'>";
                 article += "<i class='icon-mail'></i>" + email + "</a>";
-                article += "</li>";
+                article += "</li> ";
                 article += "<li class='highlight'>";
                 article += "<a href='tel:" + ophone + "' title='Call " + name + " work phone'>";
-                article += "<i class='icon-phone'></span>" + ophone + "</a>";
+                article += "<i class='icon-phone'></i>" + ophone + "</a>";
                 article += "</li>";
                 article += "</ul>";
+                article += "<div>";
+                guides.forEach(function(i){
+                    article += "<a class='tag' href='" + i.friendly_url + "'>" + i.name + "</a> ";
+                });
+                article += "</ul>";
                 article += "</div>";
-                article += "</article>";
+                article += "</div>";
                 return article;
             } else {
-                let image = "./?a=1796112";
+                let image = "%globals_asset_url:1796112%";
                 let name = this.libName;
-                let email = this.emailQuery;
+                let email = this.nameQuery;
                 let article = "<article>";
                 article += "<img class='profile-picture' src='" + image + "' alt='" + name + " profile-picture photograph'>";
                 article += "<div class='summary'>";
@@ -76,24 +77,19 @@ librarianSearch = librarianSearch || {};
         },
 
         renderError: function() {
-            let self = this;
             $(".searching").fadeOut(400, function() {
-                $(self.results).empty().append("<p>Sorry, there were no matching items.</p>");
-                $(self.results).fadeIn();
-            });
+                $(this.resultsDiv).empty().append("<p>Sorry, there were no matching items.</p>");
+                $(this.resultsDiv).fadeIn();
+            }.bind(this));
         },
 
         retrieveResults: function(data) {
             let results = data;
             let result = this.renderResult(results);
-            let self = this;
-            $(this.results).append(result);
+            $(this.resultsDiv).append(result);
             $(".searching").fadeOut(400, function() {
-                $(self.results).fadeIn();
-                $('html, body').animate({
-                  scrollTop: $("#librarian-search-form").offset().top
-                }, 400);
-            });
+                $(this.resultsDiv).fadeIn();
+            }.bind(this));
         },
 
         getAllUrlParams: function(url) {
@@ -132,8 +128,8 @@ librarianSearch = librarianSearch || {};
             return obj;
         },
 
-        getLibrarian: function(email) {
-            let data = "email=" + email;
+        getLibrarian: function(name) {
+            let data = "name=" + name;
             try {
                 $.ajax({
                     method: "GET",
@@ -147,7 +143,7 @@ librarianSearch = librarianSearch || {};
                         data = null;
                     },
                     success: function(data) {
-                        this.retrieveResults(data);
+                        (data[0]) ? this.retrieveResults(data) : this.renderError();
                     },
                     error: function() {
                         this.renderError();
@@ -158,7 +154,7 @@ librarianSearch = librarianSearch || {};
             }
         },
 
-        getEmail: function(sub) {
+        getName: function(sub) {
             let deferred = $.Deferred();
             let edata = "sub=" + sub;
             let result;
@@ -176,7 +172,7 @@ librarianSearch = librarianSearch || {};
                     },
                     success: function(data) {
                         this.libName = data.name;
-                        result = data.email;
+                        result = data.last_name;
                         deferred.resolve();
                     },
                     error: function(e) {
@@ -186,60 +182,63 @@ librarianSearch = librarianSearch || {};
             } catch (err) {
                 this.renderError();
             }
-            let self = this;
             return $.when(deferred).done(function() {
-                self.emailQuery = result;
-            }).promise();
+                this.nameQuery = result;
+            }.bind(this)).promise();
         },
 
         searchLibrarians: function() {
-          let query, subQuery, librarian
-            let self = this;
+            let query, subQuery, librarian;
             $(".results-container").removeClass("hidden");
-            $(this.results).fadeOut().empty();
+            $(this.resultsDiv).fadeOut().empty();
             $(".searching").fadeIn(function() {
-              query = self.libQuery;
-              subQuery = self.getEmail(query).done(function() {
-                  librarian = self.getLibrarian(self.emailQuery);
-              });
-            });
+                query = this.libQuery;
+                subQuery = this.getName(query).done(function() {
+                    librarian = this.getLibrarian(this.nameQuery);
+              }.bind(this));
+            }.bind(this));
         },
 
-        searchEmail: function() {
+        searchName: function() {
             let query, librarian;
-            let self = this;
             $(".results-container").removeClass("hidden");
-            $(this.results).fadeOut().empty();
+            $(this.resultsDiv).fadeOut().empty();
             $(".searching").fadeIn(function() {
-              query = self.emailQuery;
-              librarian = self.getLibrarian(query);
-            });
+                query = this.nameQuery;
+                librarian = this.getLibrarian(query);
+            }.bind(this));
         },
 
         setUp: function() {
-            let div = $(".search-panel");
+            let widget = $(".search-panel");
             let form = $("#librarian-search-form");
             let searchName = $("#librarian-by-name");
             let searchSub = $("#librarian-by-subject");
             let goSub = $("input[name='go-librarian']");
             let goName = $("input[name='go-name']");
-            this.results = $(".results");
+            this.resultsDiv = $(".results");
             this.form = form;
-            this.widget = div;
+            this.widget = widget;
 
-            goName.on("click", { context: this }, function(e) {
-                e.data.context.emailQuery = searchName.val();
+            goName.on("click", function(e) {
+                $("html, body").animate({
+                  scrollTop: $("#librarian-search-form").offset().top
+                }, 400);
+                e.preventDefault();
+                this.nameQuery = searchName.val();
                 let selectedLib = $("#librarian-by-name option:selected");
-                e.data.context.libName = $(selectedLib).html();
-                e.preventDefault();
-                e.data.context.searchEmail();
-            });
+                this.libName = $(selectedLib).html();
+                this.searchName();
+            }.bind(this));
 
-            goSub.on("click", { context: this }, function(e) {
-                e.data.context.libQuery = searchSub.val();
+            goSub.on("click", function(e) {
+                $("html, body").animate({
+                  scrollTop: $("#librarian-search-form").offset().top
+                }, 400);
                 e.preventDefault();
-                e.data.context.searchLibrarians();
-            });
+                this.libQuery = searchSub.val();
+                this.searchLibrarians();
+            }.bind(this));
 
             // Check for search query in URL
             let pageUrl = window.location.href;
@@ -255,16 +254,16 @@ librarianSearch = librarianSearch || {};
         init: function() {
             this.widget = null;
             this.form = null;
-            this.results = null;
-            this.emailQuery = null;
+            this.resultsDiv = null;
+            this.nameQuery = null;
             this.libName = null;
             this.libQuery = null;
-            this.emailapi = "./?a=1789023"; // search librarians by subject"
-            this.libapi = "./?a=1788914"; // subject librarian contact details search
+            this.emailapi = "%globals_asset_url:1789023%"; // search librarians by subject
+            this.libapi = "%globals_asset_url:1801898%"; // subject librarian by name
 
             this.setUp();
         }
-    }
+    };
 
     // Run when page has loaded
     $(document).ready(function() {
