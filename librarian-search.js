@@ -243,9 +243,10 @@ librarianSearch = librarianSearch || {};
             // Check for search query in URL
             let pageUrl = window.location.href;
             let urlQuery = this.getAllUrlParams(pageUrl);
-            let sub = urlQuery["sub"];
+            let sub = urlQuery["lib-sub"];
             sub = decodeURIComponent(sub);
-            if ("sub" in urlQuery) {
+            sub = sub.replace('+', ' ')
+            if ("lib-sub" in urlQuery) {
                 searchSub.val(sub);
                 goSub.trigger("click");
             }
