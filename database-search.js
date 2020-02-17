@@ -79,7 +79,7 @@ dbSearch = dbSearch || {};
         },
 
         renderError: function() {
-            $(this.results).empty().append("<p>Sorry, there were no matching items.</p>");
+            $(this.results).empty().append("<p>Sorry, no items matched your search.</p><ul><li>You may be able to find what you are looking for with a less specific search. For example, if you are searching for one of the several Proquest databases, you could try simply searching for “Proquest”.</li><li>Note also that you can browse the database list by the initial letter. For example, searching for “a” will show all the databases whose name starts with <emph>a</emph>.</li></ul>");
             let self = this;
             $(".searching").fadeOut(400, function() {
                 $(self.results).fadeIn();
