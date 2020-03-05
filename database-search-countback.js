@@ -67,7 +67,7 @@ dbSearch = dbSearch || {};
             let title = result.details.resource_title;
             let description = result.details.resource_description;
             let extra = result.links;
-            let id = result.resource_id;
+            let id = result.details.resource_id;
             let linkUrl = this.redirectLink + id;
 
             let item = this.buildItem(title, description, null, null, extra, linkUrl);
