@@ -9,26 +9,29 @@ librarianSearch = librarianSearch || {};
     };
 
     librarianSearch.Search.prototype = {
-        widget: null, form: null, results: null, nameQuery: null, libQuery: null, emailapi: "%globals_asset_url:1789023%", libapi: "%globals_asset_url:1801898%",
+        widget: null, form: null, results: null, nameQuery: null, libQuery: null, libDets: null, emailapi: "%globals_asset_url:1789023%", libapi: "%globals_asset_url:1801898%",
 
         // Returns a list item <li> with the result details
         renderResult: function(result) {
+          let photo, firstName, lastName, title, email, ophone, subjects, guides, name;
             if (result[0]) {
 
               // Get Details
-              let photo = result[0].photo,
-                firstName = result[0].first_name,
-                lastName = result[0].last_name,
-                title = result[0].title,
-                email = result[0].email,
-                ophone = result[0].Office_Phone,
-                subjects = result[0].subject_area,
-                guides = result[0].subjects,
-                name = firstName + " " + lastName;
+              photo = result[0].photo;
+              firstName = result[0].first_name;
+              lastName = result[0].last_name;
+              title = result[0].title;
+              email = result[0].email;
+              ophone = result[0].Office_Phone;
+              subjects = result[0].subject_area;
+              guides = result[0].subjects;
+              name = firstName + " " + lastName;
             } else {
-              let photo = "%globals_asset_url:1796112%",
-                name = this.libName,
-                email = this.nameQuery;
+              photo = "%globals_asset_url:1796112%";
+              firstName = this.libDets.first_name;
+              lastName = this.libDets.last_name;
+              email = this.libDets.email;
+              name = firstName + " " + lastName;
             }
 
             // Build HTML
@@ -64,14 +67,13 @@ librarianSearch = librarianSearch || {};
     },
 
         renderError: function() {
+            $(this.resultsDiv).empty().append("<p>Sorry, there were no matching items.</p>");
             $(".searching").fadeOut(400, function() {
-                $(this.resultsDiv).empty().append("<p>Sorry, there were no matching items.</p>");
                 $(this.resultsDiv).fadeIn();
             }.bind(this));
         },
 
         retrieveResults: function(data) {
-          console.log(data);
             let results = data;
             let result = this.renderResult(results);
             $(this.resultsDiv).append(result);
@@ -144,7 +146,7 @@ librarianSearch = librarianSearch || {};
 
         getName: function(sub) {
             let deferred = $.Deferred();
-            let edata = "sub=" + sub;
+            let ndata = "sub=" + sub;
             let result;
             try {
                 $.ajax({
@@ -153,14 +155,13 @@ librarianSearch = librarianSearch || {};
                     context: this,
                     timeout: 5000,
                     url: this.emailapi,
-                    data: edata,
+                    data: ndata,
                     dataType: "json",
                     complete: function(data) {
                         data = null;
                     },
                     success: function(data) {
-                        this.libName = data.name;
-                        result = data.first_name;
+                        this.libDets = data;
                         deferred.resolve();
                     },
                     error: function(e) {
@@ -171,8 +172,7 @@ librarianSearch = librarianSearch || {};
                 this.renderError();
             }
             return $.when(deferred).done(function() {
-              console.log(result);
-                this.nameQuery = result;
+                this.nameQuery = this.libDets.first_name;
             }.bind(this)).promise();
         },
 
@@ -182,7 +182,6 @@ librarianSearch = librarianSearch || {};
             $(this.resultsDiv).fadeOut().empty();
             $(".searching").fadeIn(function() {
                 query = this.libQuery;
-                console.log(query);
                 subQuery = this.getName(query).done(function() {
                     librarian = this.getLibrarian(this.nameQuery);
               }.bind(this));
