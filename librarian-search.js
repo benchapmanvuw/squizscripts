@@ -11,20 +11,47 @@ librarianSearch = librarianSearch || {};
     librarianSearch.Search.prototype = {
         widget: null, form: null, results: null, nameQuery: null, libQuery: null, libDets: null, emailapi: "%globals_asset_url:1789023%", libapi: "%globals_asset_url:1801898%",
 
+        nameForUrl: function(name) {
+            let plainName;
+            let macronVowels = [["ā","a"],["ē","e"],["ī","i"],["ō","o"],["ū","u"]];
+            plainName = name.trim().toLowerCase();
+            macronVowels.forEach(function(vowel) {
+                plainName = plainName.replace(vowel[0],vowel[1]);
+            });
+            return plainName;
+        },
+
+        sortGuides: function(guides) {
+            let alphaGuides;
+            alphaGuides = guides.sort(function(a, b) {
+                let nameA = a.name.toUpperCase();
+                let nameB = b.name.toUpperCase();
+                if (nameA < nameB) {
+                  return -1;
+                }
+                if (nameA > nameB) {
+                  return 1;
+                }
+                return 0;
+            });
+            return alphaGuides;
+        },
+
         // Returns a list item <li> with the result details
         renderResult: function(result) {
-          let photo, firstName, lastName, title, email, ophone, subjects, guides, name;
+          let photo, firstName, lastName, nameStub, title, email, ophone, subjects, guides, name;
             if (result[0]) {
 
               // Get Details
-              photo = result[0].photo;
               firstName = result[0].first_name;
               lastName = result[0].last_name;
+              nameStub = this.nameForUrl(firstName) + "-" + this.nameForUrl(lastName);
+              photo = "https://www.wgtn.ac.nz/images/staffpics/" + nameStub + ".jpg";
               title = result[0].title;
               email = result[0].email;
               ophone = result[0].Office_Phone;
               subjects = result[0].subject_area;
-              guides = result[0].subjects;
+              guides = this.sortGuides(result[0].subjects);
               name = firstName + " " + lastName;
             } else {
               photo = "%globals_asset_url:1796112%";
@@ -146,7 +173,8 @@ librarianSearch = librarianSearch || {};
 
         getName: function(sub) {
             let deferred = $.Deferred();
-            let ndata = "sub=" + sub;
+            let subNoSpace = sub.replace(/\s/g,"%20");
+            let ndata = "sub=" + subNoSpace;
             let result;
             try {
                 $.ajax({
@@ -236,7 +264,7 @@ librarianSearch = librarianSearch || {};
             let urlQuery = this.getAllUrlParams(pageUrl);
             let sub = urlQuery["lib-sub"];
             sub = decodeURIComponent(sub);
-            sub = sub.replace('+', ' ')
+            sub = sub.replace(/\+/gi, ' ')
             if ("lib-sub" in urlQuery) {
                 searchSub.val(sub);
                 goSub.trigger("click");

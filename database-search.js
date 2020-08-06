@@ -9,7 +9,14 @@ dbSearch = dbSearch || {};
     };
 
     dbSearch.Search.prototype = {
-        widget: null, form: null, results: null, searchQuery: null, api: "./?a=1791399", searchType: null, q: null, redirectLink: "https://library.victoria.ac.nz/casimir/public/resources/redirect/",
+        widget: null,
+        form: null,
+        results: null,
+        searchQuery: null,
+        api: "./?a=1791399",
+        searchType: null,
+        q: null,
+        redirectLink: "https://library.victoria.ac.nz/casimir/public/resources/redirect/",
 
         fadeInResults: function(){
           $(".searching").fadeOut(400, function() {
