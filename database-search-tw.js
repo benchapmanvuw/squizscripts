@@ -237,7 +237,7 @@ dbSearch = dbSearch || {};
                 this.tab = "jsearch_slot";
                 this.sort = "rank";
                 this.q = "any,contains," + this.searchQuery.term;
-                this.databases = "any" + this.searchQuery.term;
+                this.databases = "any," + this.searchQuery.term;
             } else {
                 this.tab = "jsearch_slot";
                 this.sort = "title";
