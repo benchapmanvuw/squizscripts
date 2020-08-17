@@ -9,76 +9,93 @@ librarianSearch = librarianSearch || {};
     };
 
     librarianSearch.Search.prototype = {
-        widget: null, form: null, results: null, nameQuery: null, libQuery: null, emailapi: null, libapi: null,
+        widget: null, form: null, results: null, nameQuery: null, libQuery: null, libDets: null, emailapi: "%globals_asset_url:1789023%", libapi: "%globals_asset_url:1801898%",
+
+        nameForUrl: function(name) {
+            let plainName;
+            let macronVowels = [["ā","a"],["ē","e"],["ī","i"],["ō","o"],["ū","u"]];
+            plainName = name.trim().toLowerCase();
+            macronVowels.forEach(function(vowel) {
+                plainName = plainName.replace(vowel[0],vowel[1]);
+            });
+            return plainName;
+        },
+
+        sortGuides: function(guides) {
+            let alphaGuides;
+            alphaGuides = guides.sort(function(a, b) {
+                let nameA = a.name.toUpperCase();
+                let nameB = b.name.toUpperCase();
+                if (nameA < nameB) {
+                  return -1;
+                }
+                if (nameA > nameB) {
+                  return 1;
+                }
+                return 0;
+            });
+            return alphaGuides;
+        },
 
         // Returns a list item <li> with the result details
         renderResult: function(result) {
+          let photo, firstName, lastName, nameStub, title, email, ophone, subjects, guides, name;
             if (result[0]) {
 
-                // Get Details
-                let photo = result[0].photo,
-                    firstName = result[0].first_name,
-                    lastName = result[0].last_name,
-                    title = result[0].title,
-                    email = result[0].email,
-                    ophone = result[0].Office_Phone,
-                    subjects = result[0].subject_area,
-                    guides = result[0].subjects,
-                    name = firstName + " " + lastName;
-
-                // Build HTML
-                let article = "<div class='librarian-profile'>";
-                article += "<img class='profile-picture' src='" + photo + "' alt='" + name + " profile-picture photograph'>";
-                article += "<div class='summary'>";
-                article += "<header class='formatting'>";
-                article += "<h3>" + name + "</h3>";
-                if (title) article += "<p class='subtitle'><strong>" + title + "</strong>";
-                article += "</header>";
-                article += "<!-- Quick contact info -->";
-                article += "<ul class='meta'>";
-                article += "<li class='highlight'>";
-                article += "<a href=mailto:'" + email + "' title='Send an email to " + name + "'>";
-                article += "<i class='icon-mail'></i>" + email + "</a>";
-                article += "</li> ";
-                article += "<li class='highlight'>";
-                article += "<a href='tel:" + ophone + "' title='Call " + name + " work phone'>";
-                article += "<i class='icon-phone'></i>" + ophone + "</a>";
-                article += "</li>";
-                article += "</ul>";
-                article += "<div>";
-                guides.forEach(function(i){
-                    article += "<a class='tag' href='" + i.friendly_url + "'>" + i.name + "</a> ";
-                });
-                article += "</ul>";
-                article += "</div>";
-                article += "</div>";
-                return article;
+              // Get Details
+              firstName = result[0].first_name;
+              lastName = result[0].last_name;
+              nameStub = this.nameForUrl(firstName) + "-" + this.nameForUrl(lastName);
+              photo = "https://www.wgtn.ac.nz/images/staffpics/" + nameStub + ".jpg";
+              title = result[0].title;
+              email = result[0].email;
+              ophone = result[0].Office_Phone;
+              subjects = result[0].subject_area;
+              guides = this.sortGuides(result[0].subjects);
+              name = firstName + " " + lastName;
             } else {
-                let image = "%globals_asset_url:1796112%";
-                let name = this.libName;
-                let email = this.nameQuery;
-                let article = "<article>";
-                article += "<img class='profile-picture' src='" + image + "' alt='" + name + " profile-picture photograph'>";
-                article += "<div class='summary'>";
-                article += "<header class='formatting'>";
-                article += "<h3>" + name + "</h3>";
-                article += "</header>";
-                article += "<!-- Quick contact info -->";
-                article += "<ul class='meta'>";
-                article += "<li class='highlight'>";
-                article += "<a href=mailto:'" + email + "' title='Send an email to " + name + "'>";
-                article += "<i class='icon-mail'></i>" + email + "</a>";
-                article += "</li>";
-                article += "</ul>";
-                article += "</div>";
-                article += "</article>";
-                return article;
+              photo = "%globals_asset_url:1796112%";
+              firstName = this.libDets.first_name;
+              lastName = this.libDets.last_name;
+              email = this.libDets.email;
+              name = firstName + " " + lastName;
             }
-        },
+
+            // Build HTML
+            let article = "<div class='librarian-profile'>";
+            article += "<img class='profile-picture' src='" + photo + "' alt='" + name + " profile-picture photograph'>";
+            article += "<div class='summary'>";
+            article += "<header class='formatting'>";
+            article += "<h3>" + name + "</h3>";
+            if (title) article += "<p class='subtitle'><strong>" + title + "</strong></p>";
+            article += "</header>";
+            article += "<!-- Quick contact info -->";
+            article += "<ul class='meta'>";
+            article += "<li class='highlight'>";
+            article += "<a href='mailto:" + email + "' title='Send an email to " + name + "'>";
+            article += "<i class='icon-mail'></i>" + email + "</a>";
+            article += "</li> ";
+            if (ophone) {
+              article += "<li class='highlight'>";
+              article += "<a href='tel:" + ophone + "' title='Call " + name + " work phone'>";
+              article += "<i class='icon-phone'></i>" + ophone + "</a>";
+              article += "</li>";
+            }
+            article += "</ul>";
+            if (guides && firstName != "The Library") {
+              article += "<div>";
+              guides.forEach(function(i){
+                article += "<a class='tag' href='" + i.friendly_url + "'>" + i.name + "</a> ";
+              });
+              article += "</div>";
+            }
+            article += "</div>";
+            return article;
+    },
 
         renderError: function() {
+            $(this.resultsDiv).empty().append("<p>Sorry, there were no matching items.</p>");
             $(".searching").fadeOut(400, function() {
-                $(this.resultsDiv).empty().append("<p>Sorry, there were no matching items.</p>");
                 $(this.resultsDiv).fadeIn();
             }.bind(this));
         },
@@ -156,7 +173,8 @@ librarianSearch = librarianSearch || {};
 
         getName: function(sub) {
             let deferred = $.Deferred();
-            let edata = "sub=" + sub;
+            let subNoSpace = sub.replace(/\s/g,"%20");
+            let ndata = "sub=" + subNoSpace;
             let result;
             try {
                 $.ajax({
@@ -165,14 +183,13 @@ librarianSearch = librarianSearch || {};
                     context: this,
                     timeout: 5000,
                     url: this.emailapi,
-                    data: edata,
+                    data: ndata,
                     dataType: "json",
                     complete: function(data) {
                         data = null;
                     },
                     success: function(data) {
-                        this.libName = data.name;
-                        result = data.last_name;
+                        this.libDets = data;
                         deferred.resolve();
                     },
                     error: function(e) {
@@ -183,7 +200,7 @@ librarianSearch = librarianSearch || {};
                 this.renderError();
             }
             return $.when(deferred).done(function() {
-                this.nameQuery = result;
+                this.nameQuery = this.libDets.first_name;
             }.bind(this)).promise();
         },
 
@@ -209,7 +226,7 @@ librarianSearch = librarianSearch || {};
             }.bind(this));
         },
 
-        setUp: function() {
+        init: function() {
             let widget = $(".search-panel");
             let form = $("#librarian-search-form");
             let searchName = $("#librarian-by-name");
@@ -225,6 +242,7 @@ librarianSearch = librarianSearch || {};
                   scrollTop: $("#librarian-search-form").offset().top
                 }, 400);
                 e.preventDefault();
+                $(searchSub).val(0);
                 this.nameQuery = searchName.val();
                 let selectedLib = $("#librarian-by-name option:selected");
                 this.libName = $(selectedLib).html();
@@ -236,6 +254,7 @@ librarianSearch = librarianSearch || {};
                   scrollTop: $("#librarian-search-form").offset().top
                 }, 400);
                 e.preventDefault();
+                $(searchName).val(0);
                 this.libQuery = searchSub.val();
                 this.searchLibrarians();
             }.bind(this));
@@ -245,24 +264,11 @@ librarianSearch = librarianSearch || {};
             let urlQuery = this.getAllUrlParams(pageUrl);
             let sub = urlQuery["lib-sub"];
             sub = decodeURIComponent(sub);
-            sub = sub.replace('+', ' ')
+            sub = sub.replace(/\+/gi, ' ')
             if ("lib-sub" in urlQuery) {
                 searchSub.val(sub);
                 goSub.trigger("click");
             }
-        },
-
-        init: function() {
-            this.widget = null;
-            this.form = null;
-            this.resultsDiv = null;
-            this.nameQuery = null;
-            this.libName = null;
-            this.libQuery = null;
-            this.emailapi = "%globals_asset_url:1789023%"; // search librarians by subject
-            this.libapi = "%globals_asset_url:1801898%"; // subject librarian by name
-
-            this.setUp();
         }
     };
 

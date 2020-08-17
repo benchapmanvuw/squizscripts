@@ -13,9 +13,47 @@ dbSearch = dbSearch || {};
         form: null,
         results: null,
         searchQuery: null,
-        api: "https://www.wgtn.ac.nz/library/dev/database-search",
+        api: "./?a=1791399",
         searchType: null,
         q: null,
+        redirectLink: "https://library.victoria.ac.nz/casimir/public/resources/redirect/",
+
+        fadeInResults: function(){
+          $(".searching").fadeOut(400, function() {
+              $(this.results).fadeIn();
+          }.bind(this));
+        },
+
+        buildItem: function(title, description, nextra, nextranote, subextra, linkUrl) {
+            let li = $("<li class='result-item database'></li>");
+            let details = $("<div class='details'></div>");
+            let linkTitle = "<a href='" + linkUrl + "'><h3 class='result-title'>" + title + "</h3></a>";
+            $(details).append(linkTitle);
+            let descr = (description != null) ?
+                "<div class='detail description'><strong>Description:</strong> " + description + "</div>":
+                "<div class='detail description na'>No description available</div>";
+            $(details).append(descr);
+
+            let accnote = (nextra != null) && (nextranote == "accessnote") ?
+                "<div class='detail access-note'><strong>Access note:</strong> " + nextra + "</div>" :
+                null;
+            $(details).append(accnote);
+
+            subextra.forEach(function(i) {
+              if (i.resourcelinktype_code == "accessnote") {
+                let accnote = "<div class='detail access-note'><strong>Access note:</strong> " + i.resourcelink_html + "</div>";
+                $(details).append(accnote);
+              };
+            });
+
+            $(li).append(details);
+            let buttonLink = (linkUrl != "") ?
+              "<div><a href='" + linkUrl + "' class='view-open'><i class='icon-external'></i>Go to database</a></div>" :
+              "<div class='na'>Not available for access</div>"
+            $(li).append(buttonLink);
+
+            return li;
+        },
 
         // Returns a list item <li> with the result details
         renderResultName: function(result) {
@@ -25,27 +63,10 @@ dbSearch = dbSearch || {};
             let extra = result.resourcelink_html;
             let extranote = result.resourcelinktype_code;
             let id = result.resource_id;
-            let linkUrl = "https://library.victoria.ac.nz/casimir/public/resources/redirect/" + result.resource_id;
+            let linkUrl = this.redirectLink + id;
 
-            // Build HTML
-            let li = $("<li class='result-item database'></li>");
-            let details = $("<div class='details'></div>");
-            let linkTitle = "<a href='" + linkUrl + "'><h3 class='result-title'>" + title + "</h3></a>";
-            $(details).append(linkTitle);
-            let descr = (description != null) ?
-              "<div class='detail description'><strong>Description:</strong> " + description + "</div>":
-              "<div class='detail description na'>No description available</div>";
-              $(details).append(descr);
-            let accnote = (extra != null) && (extranote == "accessnote") ?
-                "<div class='detail access-note'><strong>Access note:</strong> " + extra + "</div>" :
-                null;
-            $(details).append(accnote);
-            $(li).append(details);
-            let buttonLink = (linkUrl != "") ?
-              "<div><a href='" + linkUrl + "' class='view-open'><i class='icon-external'></i>Go to database</a></div>" :
-              "<div class='na'>Not available for access</div>"
-            $(li).append(buttonLink);
-            return li;
+            let item = this.buildItem(title, description, extra, extranote, [], linkUrl);
+            return item;
         },
 
         renderResultSub: function(result) {
@@ -53,37 +74,21 @@ dbSearch = dbSearch || {};
             let title = result.details.resource_title;
             let description = result.details.resource_description;
             let extra = result.links;
-            let linkUrl = "https://library.victoria.ac.nz/casimir/public/resources/redirect/" + result.details.resource_id;
+            let id = result.details.resource_id;
+            let linkUrl = this.redirectLink + id;
 
-            // Build HTML
-            let li = $("<li class='result-item database'></li>");
-            let details = $("<div class='details'></div>");
-            let linkTitle = "<a href='" + linkUrl + "'><h3 class='result-title'>" + title + "</h3></a>";
-            $(details).append(linkTitle);
-            let descr = (description != null) ?
-              "<div class='detail description'><strong>Description:</strong> " + description + "</div>":
-              "<div class='detail description na'>No description available</div>";
-              $(details).append(descr);
-            extra.forEach(function(i) {
-              if (i.resourcelinktype_code == "accessnote") {
-                let accnote = "<div class='detail access-note'><strong>Access note:</strong> " + i.resourcelink_html + "</div>";
-                $(details).append(accnote);
-              };
-            });
-            $(li).append(details);
-            let buttonLink = (linkUrl != "") ?
-              "<div><a href='" + linkUrl + "' class='view-open'><i class='icon-external'></i>Go to database</a></div>" :
-              "<div class='na'>Not available for access</div>"
-            $(li).append(buttonLink);
-            return li;
+            let item = this.buildItem(title, description, null, null, extra, linkUrl);
+            return item;
+        },
+
+        renderFail: function() {
+            $(this.results).empty().append("<p>Sorry, your search could not be completed. Please try again later.</p>");
+            this.fadeInResults();
         },
 
         renderError: function() {
-            $(this.results).empty().append("<p>Sorry, there were no matching items.</p>");
-            let self = this;
-            $(".searching").fadeOut(400, function() {
-                $(self.results).fadeIn();
-            });
+            $(this.results).empty().append("<p>Sorry, no items matched your search.</p>");
+            this.fadeInResults();
         },
 
         renderResults: function(data) {
@@ -119,22 +124,23 @@ dbSearch = dbSearch || {};
                 $(resultNav).append("<span class='number-results'>Displaying " + total + " results</span>");
                 $(this.results).append(resultNav);
                 let ul = $("<ul class='result-list'></ul>");
-                let self = this;
                 results.forEach(function(i) {
-                    result = (q == "title") ? self.renderResultName(i) : self.renderResultSub(i);
+                    result = (q == "title") ? this.renderResultName(i) : this.renderResultSub(i);
                     $(ul).append(result);
-                });
+                }.bind(this));
                 $(this.results).append(ul);
+            this.fadeInResults();
               } else {
-                $(this.results).empty().append("<p>Sorry, there were no matching items.</p>");
+                if (this.searchQuery.length > 1) {
+                    this.searchQuery = this.searchQuery.slice(0,-1);
+                    this.searchDBs();
+                } else {
+                    this.renderError();
+                }
               }
             } else {
-                $(this.results).empty().append("<p>Sorry, there were no matching items.</p>");
+                this.renderFail();
             }
-            let self = this;
-            $(".searching").fadeOut(400, function() {
-                $(self.results).fadeIn();
-            });
         },
 
         purify: function(val) {
@@ -189,14 +195,12 @@ dbSearch = dbSearch || {};
 
         searchDBs: function() {
             this.checkQuery();
-            if ($(".results-container").hasClass("hidden")) {
-                $(".results-container").removeClass("hidden");
-            }
+            $(".results-container").removeClass("hidden");
             $(".searching").fadeIn();
             $(this.results).fadeOut().empty();
-            query = this.searchQuery;
-            type = this.searchType;
-            q = this.q;
+            let query = this.searchQuery;
+            let type = this.searchType;
+            let q = this.q;
 
             let data = "searchType=" + type + "&q=" + q + "&db-keyword=" + query;
 
@@ -215,50 +219,50 @@ dbSearch = dbSearch || {};
                         if (data) {
                             this.renderResults(data);
                         } else {
-                            this.renderError();
+                            this.renderFail();
                         }
                     },
                     error: function(e) {
-                        this.renderError();
+                        this.renderFail();
                     }
                 });
             } catch (err) {
-                this.renderError();
+                this.renderFail();
             }
         },
 
-        setUp: function() {
-            let div = $(".search-panel");
-            let form = $("#db-search-form");
+        init: function() {
+            this.widget = $(".search-panel");
+            this. form = $("#db-search-form");
             let searchKeyword = $("input[name='db-keyword']");
             let searchButton = $("input[name='db-search']");
-            let goButton = $("input[name='go-db']");
             let searchSub = $("#database-by-subject");
+            let goButton = $("input[name='go-db']");
             this.results = $(".results");
-            this.form = form;
-            this.widget = div;
 
-            searchButton.on("click", { context: this }, function(e) {
+            function scrollTopForm() {
                 $('html, body').animate({
-                  scrollTop: $("#db-search-form").offset().top
+                    scrollTop: $("#db-search-form").offset().top
                 }, 400);
-                e.data.context.searchQuery = searchKeyword.val();
-                e.data.context.searchType = "search";
-                e.data.context.q = "title";
-                e.preventDefault();
-                e.data.context.searchDBs();
-            });
+            };
 
-            goButton.on("click", { context: this }, function(e) {
-                $('html, body').animate({
-                  scrollTop: $("#db-search-form").offset().top
-                }, 400);
-                e.data.context.searchQuery = searchSub.val();
-                e.data.context.searchType = "subject";
-                e.data.context.q = "subject";
+            searchButton.on("click", function(e) {
+                scrollTopForm();
                 e.preventDefault();
-                e.data.context.searchDBs();
-            });
+                this.searchQuery = searchKeyword.val();
+                this.searchType = "search";
+                this.q = "title";
+                this.searchDBs();
+            }.bind(this));;
+
+            goButton.on("click", function(e) {
+                scrollTopForm();
+                e.preventDefault();
+                this.searchQuery = searchSub.val();
+                this.searchType = "subject";
+                this.q = "subject";
+                this.searchDBs();
+            }.bind(this));
 
             // Check for search query in URL
             let pageUrl = window.location.href;
@@ -279,17 +283,6 @@ dbSearch = dbSearch || {};
                 searchSub.val(dbsub)
                 goButton.trigger("click");
             }
-        },
-
-        init: function() {
-            this.widget = null;
-            this.form = null;
-            this.results = null;
-            this.searchQuery = null;
-            this.api = "https://www.wgtn.ac.nz/library/dev/database-search";
-            this.searchType = null;
-            this.q = null;
-            this.setUp();
         }
     }
 

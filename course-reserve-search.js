@@ -71,9 +71,9 @@ reserveSearch = reserveSearch || {};
             $(li).append(details);
             let h;
             if (edition == null) {
-                h = "<h3 class='result-title'>" + title + "</h3>";
+                h = "<div class='result-title'>" + title + "</div>";
             } else {
-                h = "<h3 class='result-title'>" + title + ", " + edition + "</h3>";
+                h = "<div class='result-title'>" + title + ", " + edition + "</div>";
             }
             $(details).append(h);
             if (type != null) {
@@ -87,13 +87,6 @@ reserveSearch = reserveSearch || {};
             if (avail != null) {
                 $(details).append("<div class= 'detail availability'>" + avail + " at " + loc + " " + callN);
             }
-            delCat.forEach(function(i) {
-                if (i = "Alma-E") {
-                    let linkUrl = "https://ap01.alma.exlibrisgroup.com/view/uresolver/64VUW_INST/openurl?svc_dat=viewit&rft.mms_id=" + recordid;
-                    buttonLink = "<div><a href='" + linkUrl + "' class='view-open' target='_blank'><i class='icon-external'></i>Online text</a></div>";
-                    $(li).append(buttonLink);
-                }
-            });
             if (recordid != null) {
                 let twlink = "<div><a href='%globals_asset_file_contents:1768409^json_decode^index:tewaharoa%/discovery/fulldisplay?vid=64VUW_INST:VUWNUI&lang=en&search_scope=CourseReserves&tab=CourseResearves&docid=alma" + recordid + "' class='TW-link' target='_blank'><i class='icon-external'></i>View record in Te Waharoa</a></div>"
                 $(li).append(twlink);
