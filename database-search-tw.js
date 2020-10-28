@@ -253,6 +253,7 @@ dbSearch = dbSearch || {};
                 "&q=" + this.q +
                 "&sort=" + this.sort +
                 "&offset=" + this.offset +
+                "&limit=" + this.limit +
                 "&databases=" + this.databases +
                 "&query=" + this.searchQuery.term +
                 "&search-type=" + this.searchQuery.type;
